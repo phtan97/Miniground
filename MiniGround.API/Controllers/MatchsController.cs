@@ -88,11 +88,11 @@ namespace MiniGround.API.Controllers
         [Authorize(Roles = "0")]
         [HttpPut]
         [Route("update/time")]
-        public async Task<IActionResult> UpdateMatch(int id, TimeSpan timePlus)
+        public async Task<IActionResult> UpdateMatch(int id, string timePlus)
         {
             try
             {
-                var response = await _matchInfoService.UpdateMatchInfo(id, timePlus);
+                var response = await _matchInfoService.UpdateMatchInfo(id, TimeSpan.Parse(timePlus));
                 if (response.Code == Errors.SUCCESS.Code)
                 {
                     return Ok(response.Data);
@@ -114,6 +114,27 @@ namespace MiniGround.API.Controllers
             try
             {
                 var response = await _matchInfoService.UpdateStatusMatchInfo(id, status);
+                if (response.Code == Errors.SUCCESS.Code)
+                {
+                    return Ok(response.Data);
+                }
+                return BadRequest(response.Data);
+            }
+            catch (Exception ex)
+            {
+                _Log.Error(ex);
+                return StatusCode((int)HttpStatusCode.InternalServerError, "system errors");
+            }
+        }
+        
+        [Authorize(Roles = "0")]
+        [HttpDelete]
+        [Route("delete")]
+        public async Task<IActionResult> DeleteMatch(int id)
+        {
+            try
+            {
+                var response = await _matchInfoService.UpdateStatusMatchInfo(id, EMatchInfoStatus.Deleted);
                 if (response.Code == Errors.SUCCESS.Code)
                 {
                     return Ok(response.Data);

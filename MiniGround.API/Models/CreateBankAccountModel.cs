@@ -8,13 +8,11 @@ namespace MiniGround.API.Models
 {
     public class CreateBankAccountModel
     {
-        [Required]
-        public int UserId { get; set; }
         public string FullName { get; set; }
         public string AccountName { get; set; }
         public string AccountNumber { get; set; }
         [Required]
-        public string Password { get; set; }
+        public string PasswordBank { get; set; }
 
     }
 }

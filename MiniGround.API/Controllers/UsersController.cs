@@ -104,5 +104,25 @@ namespace MiniGround.API.Controllers
                 return StatusCode((int)HttpStatusCode.InternalServerError, "system errors");
             }
         }
+
+        [Route("get/sortbyprices")]
+        [HttpGet]
+        public async Task<IActionResult> GetUsersBySortPrices(DateTime startDate, DateTime endDate)
+        {
+            try
+            {
+                var response = await _userService.GetUsersBySortPrice(startDate, endDate);
+                if(response.Code == Errors.SUCCESS.Code)
+                {
+                    return Ok(response.Data);
+                }
+                return BadRequest(response.Data);
+            }
+            catch (Exception ex)
+            {
+                _Log.Error(ex);
+                return StatusCode((int)HttpStatusCode.InternalServerError, "system errors");
+            }
+        }
     }
 }

@@ -89,5 +89,20 @@ namespace MiniGround.API.Controllers
                 return StatusCode((int)HttpStatusCode.InternalServerError, "server Errors");
             }
         }
+
+        [HttpPost]
+        [Route("logout")]
+        public async Task<IActionResult> Logout(string username)
+        {
+            try
+            {
+
+            }
+            catch(Exception ex)
+            {
+                _Log.Error(ex);
+                return StatusCode((int)HttpStatusCode.InternalServerError, "server Errors");
+            }
+        }
     }
 }

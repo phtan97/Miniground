@@ -126,6 +126,7 @@ namespace MiniGround.API.Dependency.Services
             try
             {
                 TableUser user = null;
+                TableUserBank userBank = null;
                 using (var db = new DatabaseContext())
                 {
                     userLogin.Password = Uitilities.HashMD5(userLogin.Password);
@@ -142,8 +143,10 @@ namespace MiniGround.API.Dependency.Services
                     {
                         return Task.FromResult(error.Failed("tài khoản của bạn đã bị khóa, vui lòng liên hệ với quản trị viên"));
                     }
+                    userBank = db.TableUserBanks.FirstOrDefault(x => x.UserId == user.Id);
                 }
-                return Task.FromResult(error.SetData(new { user.Id, user.Username, user.Role, user.Phone, user.ReferalCode }));
+                return Task.FromResult(error.SetData(new { user.Id, user.Username, user.Role, user.Phone, user.ReferalCode, 
+                    userBank.BankNumber, userBank.BankName, userBank.AccountBalance, userBank.FullName }));
             }
             catch (Exception ex)
             {
@@ -158,31 +161,94 @@ namespace MiniGround.API.Dependency.Services
             {
                 using (var db = new DatabaseContext())
                 {
-                    if(db.TableUsers.Any(x=>x.Username == userRegister.Username))
+                    using (var transaction = db.Database.BeginTransaction())
                     {
-                        return Task.FromResult(error.Failed("Tài khoản đã tồn tại"));
+                        try
+                        {
+                            if (db.TableUsers.Any(x => x.Username == userRegister.Username))
+                            {
+                                return Task.FromResult(error.Failed("Tài khoản đã tồn tại"));
+                            }
+                            string referalCode = GetRandomReferalCode();
+                            var parentUser = db.TableUsers.FirstOrDefault(x => x.ReferalCode.Equals(userRegister.ReferalCode));
+                            var user = new TableUser();
+                            user.Role = (int)EUserRole.SaleAgentLv1;
+                            if (parentUser != null)
+                            {
+                                user.ParentId = parentUser.Id;
+                                user.Role = parentUser.Role + 1;
+                            }
+                            user.Username = userRegister.Username;
+                            user.FullName = userRegister.createBankAccount?.FullName;
+                            user.ReferalCode = referalCode;
+                            user.CreatedOn = DateTime.Now;
+                            user.IsActived = false;
+                            user.IsDeleted = false;
+                            user.Password = Uitilities.HashMD5(userRegister.Password);
+                            user.Phone = userRegister.PhoneNumber;
+                            user.NickName = userRegister.NickName;
+                            db.TableUsers.Add(user);
+                            if (db.SaveChanges() > 0)
+                            {
+                                db.TableUserBanks.Add(new TableUserBank
+                                {
+                                    UserId = user.Id,
+                                    BankNumber = userRegister.createBankAccount.AccountNumber,
+                                    BankName = userRegister.createBankAccount.AccountName,
+                                    FullName = user.Username,
+                                    Password = Uitilities.HashMD5(userRegister.createBankAccount.PasswordBank),
+                                    AccountBalance = 0,
+                                    CreatedOn = DateTime.Now,
+                                    Status = (int)EDefaultStatus.Active
+                                });
+                                if (db.SaveChanges() > 0)
+                                {
+                                    error.SetData("tạo tài khoản thành công, vui lòng đợi hoặc liên hệ quản trị viên để kích hoạt tài khoản");
+                                }
+                            }
+                            else
+                            {
+                                error.SetData("Tạo tài khoản thất bại, vui lòng thử lại sau");
+                            }
+                            transaction.Commit();
+                        }
+                        catch (Exception)
+                        {
+                            transaction.Rollback();
+                        }
                     }
-                    string referalCode = GetRandomReferalCode();
-                    var parentUser = db.TableUsers.FirstOrDefault(x => x.ReferalCode.Equals(userRegister.ReferalCode));
-                    var user = new TableUser();
-                    user.Role = (int)EUserRole.SaleAgentLv1;
-                    if (parentUser != null)
-                    {
-                        user.ParentId = parentUser.Id;
-                        user.Role = parentUser.Role + 1;
-                    }
-                    user.Username = userRegister.Username;
-                    user.ReferalCode = referalCode;
-                    user.CreatedOn = DateTime.Now;
-                    user.IsActived = false;
-                    user.IsDeleted = false;
-                    user.Password = Uitilities.HashMD5(userRegister.Password);
-                    user.Phone = userRegister.PhoneNumber;
-                    user.NickName = userRegister.NickName;
-                    db.TableUsers.Add(user);
-                    return db.SaveChanges() > 0 ? Task.FromResult(error.SetData("tạo tài khoản thành công, vui lòng đợi hoặc liên hệ quản trị viên để kích hoạt tài khoản")) :
-                        Task.FromResult(error.SetData("Tạo tài khoản thất bại, vui lòng thử lại sau"));
                 }
+                return Task.FromResult(error);
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+
+        public Task<ErrorObject> GetUsersBySortPrice(DateTime startDate, DateTime endDate)
+        {
+            try
+            {
+                var response = new ErrorObject(Errors.SUCCESS);
+                using (var db = new DatabaseContext())
+                {
+                    var users = db.TableUsers.Where(x => x.IsActived == true && x.IsDeleted == false).ToList();
+                    var usersID = users.Select(x => x.Id).ToList();
+                    var usersBank = db.TableUserBanks.Where(x => usersID.Contains(x.UserId) && x.Status == (int)EDefaultStatus.Active).ToList();
+                    var userBankIDs = usersBank.Select(x => x.Id).ToList();
+                    var bankHistories = db.TableBankHistories.Where(x => userBankIDs.Contains(x.BankID) && x.IsActived == true
+                    && x.CreatedOn >= startDate && x.CreatedOn <= endDate).ToList();
+                    var data = users.Select(x => new
+                    {
+                        x.Id,
+                        x.Username,
+                        x.NickName,
+                        totalEarn = bankHistories.Where(c => usersBank.Where(z => z.UserId == x.Id).Select(z => z.Id).Contains(c.BankID)).Sum(c => c.Price)
+                    }).ToArray().OrderByDescending(x => x.totalEarn);
+                    response.SetData(data);
+                }
+                return Task.FromResult(response);
             }
             catch (Exception ex)
             {

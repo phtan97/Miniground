@@ -18,5 +18,6 @@ namespace MiniGround.API.Models
         [Phone]
         public string PhoneNumber { get; set; }
         public string ReferalCode { get; set; }
+        public CreateBankAccountModel createBankAccount { get; set; }
     }
 }

@@ -9,7 +9,7 @@ namespace MiniGround.API.Dependency.Interfaces
     public interface IFieldPriceService
     {
         Task<ErrorObject> GetFieldPriceByFootBallField(int footballFieldId);
-        Task<ErrorObject> UpdateFiedPriceByFootBallField(int footballFieldId, double price);
+        Task<ErrorObject> UpdateFiedPriceByFootBallField(int footballFieldId,string startTime, string endTime, double price);
         Task<ErrorObject> InsertFiedPriceByFootBallField(int footballFieldId, TimeSpan startDate, TimeSpan endDate, double price);
     }
 }

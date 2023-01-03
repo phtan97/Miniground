@@ -83,5 +83,46 @@ namespace MiniGround.API.Controllers
                 return StatusCode((int)HttpStatusCode.InternalServerError);
             }
         }
+
+        [Route("withdraw")]
+        [HttpPost]
+        public async Task<IActionResult> WithdrawMoney([FromBody](int id, decimal prices) user)
+        {
+            try
+            {
+                var response = await _userBankService.WithdrawMoney(user.id, user.prices);
+                if (response.Code == Errors.SUCCESS.Code)
+                {
+                    return Ok(response);
+                }
+                return BadRequest(response);
+            }
+            catch (Exception ex)
+            {
+                _Log.Error(ex);
+                return StatusCode((int)HttpStatusCode.InternalServerError);
+            }
+        }
+        
+        [Authorize(Roles = "0")]
+        [Route("withdraw/accept")]
+        [HttpPost]
+        public async Task<IActionResult> AcceptWithdrawMoney([FromBody](int id, int bankID, decimal prices) user)
+        {
+            try
+            {
+                var response = await _userBankService.AcceptWithdrawMoney(user.id, user.bankID, user.prices);
+                if (response.Code == Errors.SUCCESS.Code)
+                {
+                    return Ok(response);
+                }
+                return BadRequest(response);
+            }
+            catch (Exception ex)
+            {
+                _Log.Error(ex);
+                return StatusCode((int)HttpStatusCode.InternalServerError);
+            }
+        }
     }
 }

@@ -6,13 +6,16 @@ using System.Threading.Tasks;
 
 namespace MiniGround.API.ContextModels.Tables
 {
-    public class TableFootBallField
+    public class TableBankHistory
     {
         [Key]
-        public int Id { get; set; }
-        [StringLength(100)]
-        public string Name { get; set; }
+        public int id { get; set; }
+        [Required]
+        public int BankID { get; set; }
+        [Required]
+        public decimal Price { get; set; }
+        [Required]
         public bool IsActived { get; set; }
-        public virtual List<TableFieldPrice> FieldPrices { get; set; } = new List<TableFieldPrice>();
+        public DateTime CreatedOn { get; set; }
     }
 }

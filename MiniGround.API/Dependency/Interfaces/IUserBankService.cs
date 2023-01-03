@@ -11,5 +11,7 @@ namespace MiniGround.API.Dependency.Interfaces
         Task<ErrorObject> GetBanksByUser(int userId);
         Task<ErrorObject> InsertBankAccount(CreateBankAccountModel BankAccountModel);
         Task<ErrorObject> UpdateBankAccount(UpdateBankAccountModel BankAccountModel);
+        Task<ErrorObject> WithdrawMoney(int id, decimal prices);
+        Task<ErrorObject> AcceptWithdrawMoney(int id, int bankID, decimal prices);
     }
 }

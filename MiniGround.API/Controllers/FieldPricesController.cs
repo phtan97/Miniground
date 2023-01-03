@@ -46,11 +46,11 @@ namespace MiniGround.API.Controllers
 
         [HttpPut]
         [Route("update/price")]
-        public async Task<IActionResult> UpdateFieldPriceFootball(int id, double price)
+        public async Task<IActionResult> UpdateFieldPriceFootball(int id, string startTime, string endTime, double price)
         {
             try
             {
-                var response = await _fieldPriceService.UpdateFiedPriceByFootBallField(id, price);
+                var response = await _fieldPriceService.UpdateFiedPriceByFootBallField(id, startTime, endTime, price);
                 if (response.Code == Errors.SUCCESS.Code)
                 {
                     return Ok(response.Data);
@@ -69,8 +69,9 @@ namespace MiniGround.API.Controllers
         public async Task<IActionResult> InsertFieldPriceFootball([FromBody] InsertFieldPriceFootballModel fieldPriceFootballModel)
         {
             try
-            {
-                var response = await _fieldPriceService.InsertFiedPriceByFootBallField(fieldPriceFootballModel.IdFootballField, fieldPriceFootballModel.StartDate, fieldPriceFootballModel.EndDate, fieldPriceFootballModel.Price);
+            {   
+                
+                var response = await _fieldPriceService.InsertFiedPriceByFootBallField(fieldPriceFootballModel.IdFootballField, TimeSpan.Parse(fieldPriceFootballModel.StartDate), TimeSpan.Parse(fieldPriceFootballModel.EndDate), fieldPriceFootballModel.Price);
                 if (response.Code == Errors.SUCCESS.Code)
                 {
                     return Ok(response.Data);

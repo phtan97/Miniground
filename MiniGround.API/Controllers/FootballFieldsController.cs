@@ -85,5 +85,26 @@ namespace MiniGround.API.Controllers
                 return StatusCode((int)HttpStatusCode.InternalServerError, "system errors");
             }
         }
+        
+        [Authorize(Roles = "0")]
+        [HttpPut]
+        [Route("delete")]
+        public async Task<IActionResult> DeleteFootBallField(int id, string footballName, bool isActive)
+        {
+            try
+            {
+                var response = await _footballFieldService.UpdateFootBallField(id, footballName, isActive);
+                if (response.Code == Errors.SUCCESS.Code)
+                {
+                    return Ok(response.Data);
+                }
+                return BadRequest(response.Data);
+            }
+            catch (Exception ex)
+            {
+                _Log.Error(ex);
+                return StatusCode((int)HttpStatusCode.InternalServerError, "system errors");
+            }
+        }
     }
 }

@@ -17,14 +17,16 @@ namespace MiniGround.API.Dependency.Services
             var response = new ErrorObject(Errors.SUCCESS);
             try
             {
+                var startTime = TimeSpan.Parse(matchInfoModel.StartTime);
+                var endTime = TimeSpan.Parse(matchInfoModel.EndTime);
                 var datetimeNow = DateTime.Now;
                 var startDay = new DateTime(datetimeNow.Year, datetimeNow.Month, datetimeNow.Day);
                 var endDay = startDay.AddHours(23).AddMinutes(59).AddSeconds(59);
                 using (var db = new DatabaseContext())
                 {
-                    var matchsInDay = db.TableMatchInfos.Where(x => startDay <= x.CreatedOn && x.CreatedOn <= endDay && x.Status != (int)EMatchInfoStatus.Deleted).ToList();
-                    if (matchsInDay.Any(x => x.StartTime <= matchInfoModel.StartTime && matchInfoModel.StartTime <= x.EndTime) ||
-                        matchsInDay.Any(x => x.StartTime <= matchInfoModel.EndTime && matchInfoModel.EndTime <= x.EndTime))
+                    var matchsInDay = db.TableMatchInfos.Where(x =>x.FootballFieldId == matchInfoModel.FootballFieldId && startDay <= x.CreatedOn && x.CreatedOn <= endDay && x.Status != (int)EMatchInfoStatus.Deleted).ToList();
+                    if (matchsInDay.Any(x => x.StartTime <= startTime && endTime <= x.EndTime) ||
+                        matchsInDay.Any(x => x.StartTime <= endTime && endTime <= x.EndTime))
                     {
                         return Task.FromResult(response.Failed("sân này đã được đặt, vui lòng chọn sân khác hoặc thay đổi thời gian"));
                     }
@@ -115,6 +117,13 @@ namespace MiniGround.API.Dependency.Services
                             {
                                 var userParent = db.TableUsers.FirstOrDefault(x => x.ParentId == idUserParent);
                                 var userBank = db.TableUserBanks.FirstOrDefault(x => x.UserId == userParent.Id);
+                                db.TableBankHistories.Add(new TableBankHistory
+                                {
+                                    BankID = userBank.Id,
+                                    Price = matchField.Price * ((decimal)item / 100),
+                                    CreatedOn = DateTime.Now,
+                                    IsActived = true
+                                });
                                 userBank.AccountBalance += matchField.Price * ((decimal)item / 100);
                                 idUserParent = (int)userParent.ParentId;
                             }

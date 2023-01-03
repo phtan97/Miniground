@@ -8,7 +8,8 @@ namespace MiniGround.API.Models
     public class CreateMatchModel
     {
         public int UserId { get; set; }
-        public TimeSpan StartTime { get; set; }
-        public TimeSpan EndTime { get; set; }
+        public int FootballFieldId { get; set; }
+        public string StartTime { get; set; }
+        public string EndTime { get; set; }
     }
 }

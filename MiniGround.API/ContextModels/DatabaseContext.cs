@@ -21,6 +21,7 @@ namespace MiniGround.API.ContextModels
         public virtual DbSet<TableFootBallField> TableFootBallFields { get; set; }
         public virtual DbSet<TableFieldPrice> TableFieldPrice { get; set; }
         public virtual DbSet<TableMatchInfo> TableMatchInfos { get; set; }
+        public virtual DbSet<TableBankHistory> TableBankHistories { get; set; }
         protected override void OnConfiguring(DbContextOptionsBuilder optionsbuilder)
         {
             if (!optionsbuilder.IsConfigured)
@@ -39,6 +40,7 @@ namespace MiniGround.API.ContextModels
             builder.Entity<TableFieldPrice>();
             builder.Entity<TableUserBank>();
             builder.Entity<TableSaleAgent>();
+            builder.Entity<TableBankHistory>();
         }
     }
 }

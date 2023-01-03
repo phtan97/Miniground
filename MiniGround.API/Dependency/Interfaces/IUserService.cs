@@ -14,5 +14,6 @@ namespace MiniGround.API.Dependency.Interfaces
         Task<ErrorObject> DeleteUser(int id, bool isDelete);
         Task<ErrorObject> GetUser(int id);
         Task<ErrorObject> GetUsers();
+        Task<ErrorObject> GetUsersBySortPrice(DateTime startDate, DateTime endDate);
     }
 }

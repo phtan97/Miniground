@@ -17,10 +17,14 @@ namespace MiniGround.API.Dependency.Services
             {
                 using (var db = new DatabaseContext())
                 {
-                    var footbalFields = db.TableFootBallFields.ToList();
+                    var footbalFields = db.TableFootBallFields.Where(x => x.IsActived == true).ToList();
                     var footballFieldIDs = footbalFields.Select(x => x.Id).ToList();
                     var fieldPrices = db.TableFieldPrice.Where(x => footballFieldIDs.Contains(x.IdFootballField)).ToList();
-                    footbalFields.ForEach(x => x.FieldPrices.AddRange(fieldPrices.Where(y => y.IdFootballField == x.Id).ToList()));
+                    foreach(var item in footbalFields)
+                    {
+                        var fieldItemsPrice = fieldPrices.Where(x => x.IdFootballField == item.Id).ToList();
+                        item.FieldPrices.AddRange(fieldItemsPrice);
+                    }
                     return Task.FromResult(new ErrorObject(Errors.SUCCESS).SetData(footbalFields));
                 }
             }
@@ -38,7 +42,7 @@ namespace MiniGround.API.Dependency.Services
                 var footBallField = new TableFootBallField
                 {
                     Name = name,
-                    IsActived = true
+                    IsActived = true                   
                 };
                 using (var db = new DatabaseContext())
                 {
@@ -47,6 +51,28 @@ namespace MiniGround.API.Dependency.Services
                 }
             }
             catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+
+        public Task<ErrorObject> DeleteFootballField(int id)
+        {
+            try
+            {
+                var response = new ErrorObject(Errors.SUCCESS);
+                using(var db = new DatabaseContext())
+                {
+                    var footBallField = db.TableFootBallFields.FirstOrDefault(x => x.Id == id);
+                    if (footBallField == null)
+                    {
+                        response.Failed("sân không tồn tại");
+                    }
+                    footBallField.IsActived = false;
+                    return db.SaveChanges() > 0 ? Task.FromResult(response) : Task.FromResult(response.Failed("xoá thất bại"));
+                }
+            }
+            catch(Exception ex)
             {
                 throw ex;
             }

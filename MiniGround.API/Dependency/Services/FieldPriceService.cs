@@ -36,7 +36,8 @@ namespace MiniGround.API.Dependency.Services
                     IdFootballField = footballFieldId,
                     StartDate = startDate,
                     EndDate = endDate,
-                    Price = (decimal)price
+                    Price = (decimal)price,
+                    CreatedOn = DateTime.Now
                 };
                 using (var db = new DatabaseContext())
                 {
@@ -56,7 +57,7 @@ namespace MiniGround.API.Dependency.Services
             }
         }
 
-        public Task<ErrorObject> UpdateFiedPriceByFootBallField(int footballFieldId, double price)
+        public Task<ErrorObject> UpdateFiedPriceByFootBallField(int footballFieldId, string startTime, string endTime, double price)
         {
             var response = new ErrorObject(Errors.SUCCESS);
             try
@@ -68,7 +69,12 @@ namespace MiniGround.API.Dependency.Services
                     {
                         return Task.FromResult(response.Failed("bảng giá sân banh này không tồn tại"));
                     }
-                    fieldPrice.Price = (decimal)price;
+                    if (string.IsNullOrEmpty(startTime) || string.IsNullOrEmpty(endTime))
+                    {
+                        fieldPrice.StartDate = TimeSpan.Parse(startTime);
+                        fieldPrice.EndDate = TimeSpan.Parse(endTime);
+                    }
+                    if(price > 0) fieldPrice.Price = (decimal)price;
                     return db.SaveChanges() > 0 ? Task.FromResult(response) : Task.FromResult(response.Failed("Cập nhật bảng giá thất bại"));
                 }
             }

@@ -10,6 +10,8 @@ namespace MiniGround.API.ContextModels.Tables
     {
         [Key]
         public int Id { get; set; }
+        [Required]
+        public int FootballFieldId { get; set; }
         public int UserId { get; set; }
         public DateTime CreatedOn { get; set; }
         [StringLength(50)]
